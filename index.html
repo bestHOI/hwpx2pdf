@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HWPX to PDF 변환기 - 100% 로컬 보안 변환</title>
+    <meta name="description" content="사용자 컴퓨터에서 직접 실행되는 안전하고 신속한 HWPX to PDF 변환기입니다. 어떠한 파일 데이터도 외부 서버로 업로드되지 않으므로 정보 보호에 완벽합니다.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="HWPX to PDF 변환기 - 100% 로컬 보안 변환">
+    <meta property="og:description" content="사용자 컴퓨터에서 직접 실행되는 안전하고 신속한 HWPX to PDF 변환기입니다. 어떠한 파일 데이터도 외부 서버로 업로드되지 않아 정보 보호에 완벽합니다.">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1 id="app-title">HWPX to PDF Converter</h1>
+        <p class="subtitle" id="app-subtitle">설치 없이 브라우저 내에서 수행하는 한글 문서 변환 서비스</p>
+    </header>
+
+    <main>
+        <!-- Converter Card -->
+        <section class="converter-card" id="main-converter-card">
+            
+            <!-- Mandatory Privacy Disclaimer Badge -->
+            <div class="privacy-badge" id="privacy-disclaimer">
+                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                <span>정보보호를 위해 파일 변환은 사용자 컴퓨터에서 이루어 집니다.</span>
+            </div>
+
+            <!-- Upload Drop Zone -->
+            <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="파일 업로드">
+                <i class="fa-regular fa-file-pdf upload-icon" aria-hidden="true"></i>
+                <p class="upload-text" id="drop-zone-text">HWPX 또는 DOCX 파일을 드래그 앤 드롭하거나 클릭하여 선택하세요</p>
+                <p class="upload-desc" id="drop-zone-desc">.hwpx 및 .docx 파일만 지원합니다 (모든 연산은 브라우저 로컬에서만 수행됩니다)</p>
+                <input type="file" id="file-input" accept=".hwpx,.docx">
+            </div>
+
+            <!-- Selected File Info Display -->
+            <div class="file-info-box" id="file-info-box">
+                <i class="fa-solid fa-file-zipper file-info-icon" aria-hidden="true"></i>
+                <div class="file-info-details">
+                    <span class="file-name" id="selected-file-name">filename.hwpx</span>
+                    <span class="file-size" id="selected-file-size">0 KB</span>
+                </div>
+                <button class="file-info-remove" id="btn-remove-file" aria-label="파일 제거" title="파일 제거">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <!-- Conversion Progress Indicator -->
+            <div class="progress-container" id="progress-container">
+                <div class="progress-info">
+                    <span id="progress-percentage">0%</span>
+                    <span id="progress-stage">파일 읽는 중...</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+                <p class="status-message" id="status-message"></p>
+            </div>
+
+            <!-- Actions Panel -->
+            <div class="action-panel" id="action-panel">
+                <button class="btn btn-secondary" id="btn-reset">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> 다시 변환하기
+                </button>
+                <button class="btn btn-primary" id="btn-download">
+                    <i class="fa-solid fa-download" aria-hidden="true"></i> PDF 다운로드
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Document Live Preview Container -->
+        <section class="preview-section" id="preview-section">
+            <div class="preview-header">
+                <h2 class="preview-title" id="preview-title-text">
+                    <i class="fa-regular fa-eye" aria-hidden="true"></i> 변환 결과 미리보기
+                </h2>
+            </div>
+            
+            <div class="preview-split-container" id="preview-split-container">
+                <!-- Left Panel: HWPX Viewer -->
+                <div class="viewer-panel" id="hwpx-viewer-panel">
+                    <h3 class="viewer-panel-title" id="left-viewer-title">
+                        <i class="fa-regular fa-file-lines" aria-hidden="true"></i> 문서 디지털 뷰어
+                    </h3>
+                    <div class="viewer-card" id="hwpx-viewer-card">
+                        <div class="hwpx-reader" id="hwpx-html-output">
+                            <!-- HWPX parsed HTML digital view -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Converted PDF Print Preview -->
+                <div class="viewer-panel" id="pdf-viewer-panel">
+                    <h3 class="viewer-panel-title">
+                        <i class="fa-regular fa-file-pdf" aria-hidden="true"></i> PDF 인쇄 레이아웃 미리보기
+                    </h3>
+                    <div class="viewer-card" id="pdf-viewer-card">
+                        <!-- Simulation A4 Sheet -->
+                        <div class="a4-page pdf-print-preview" id="parsed-html-output">
+                            <!-- Real parsed text content will be dynamically generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 HWPX2PDF. 모든 변환 로직은 <a href="https://github.com/jszip/jszip" target="_blank" rel="noopener">JSZip</a>과 <a href="https://github.com/eKoopmans/html2pdf.js" target="_blank" rel="noopener">html2pdf.js</a>를 활용하여 순수 100% 클라이언트 사이드 웹 자바스크립트로 구동됩니다.</p>
+    </footer>
+
+    <!-- Dependency Libraries (CDNs) -->
+    <!-- JSZip: ZIP extractor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+    <!-- html2pdf: HTML element to PDF converter -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+    <!-- Mammoth: DOCX to HTML converter -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
+    
+    <!-- Application Logic -->
+    <script src="app.js" defer></script>
+</body>
+</html>

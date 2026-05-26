@@ -743,54 +743,80 @@ document.addEventListener('DOMContentLoaded', () => {
             btnDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 이미지 변환 중...';
             const imageFileName = baseFileName + "." + format;
 
-            // Render right A4 Preview sheet to canvas using html2canvas
-            html2canvas(parsedHtmlOutput, {
-                scale: scale,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false
-            }).then(canvas => {
-                let dataUrl = null;
+            // Create a temporary container off-screen to render the full document height without scrolling truncation
+            const clone = parsedHtmlOutput.cloneNode(true);
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            // Force exact width matching standard A4 dimensions on screen
+            clone.style.width = parsedHtmlOutput.getBoundingClientRect().width + 'px';
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+            
+            // Keep inline styles, especially the dynamic canvas-generated watermark image background
+            clone.style.backgroundImage = parsedHtmlOutput.style.backgroundImage;
+            clone.style.backgroundRepeat = parsedHtmlOutput.style.backgroundRepeat;
+            
+            document.body.appendChild(clone);
 
-                if (format === 'png') {
-                    dataUrl = canvas.toDataURL('image/png');
-                } else if (format === 'jpg') {
-                    dataUrl = canvas.toDataURL('image/jpeg', quality);
-                } else if (format === 'gif') {
-                    dataUrl = canvas.toDataURL('image/gif');
-                    // Fallback to PNG if browser does not support GIF canvas encoding
-                    if (!dataUrl || dataUrl.startsWith('data:image/png')) {
-                        dataUrl = canvas.toDataURL('image/png').replace('image/png', 'image/gif');
-                    }
-                } else if (format === 'bmp') {
-                    dataUrl = canvasToBMP(canvas);
-                }
-
-                if (dataUrl) {
-                    // Trigger download in local browser
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = dataUrl;
-                    downloadLink.download = imageFileName;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
+            // Wait a brief moment for the DOM to render the clone element
+            setTimeout(() => {
+                html2canvas(clone, {
+                    scale: scale,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: -window.scrollY // Offset window scroll coordinates to prevent offset blank rendering
+                }).then(canvas => {
+                    document.body.removeChild(clone);
                     
-                    // Revoke object URL if BMP to release memory
-                    if (format === 'bmp' && dataUrl.startsWith('blob:')) {
-                        URL.revokeObjectURL(dataUrl);
-                    }
-                } else {
-                    alert('이미지 파일 변환에 실패했습니다.');
-                }
+                    let dataUrl = null;
 
-                btnDownload.disabled = false;
-                btnDownload.innerHTML = origContent;
-            }).catch(error => {
-                console.error(error);
-                alert('이미지 생성 중 오류가 발생했습니다: ' + error.message);
-                btnDownload.disabled = false;
-                btnDownload.innerHTML = origContent;
-            });
+                    if (format === 'png') {
+                        dataUrl = canvas.toDataURL('image/png');
+                    } else if (format === 'jpg') {
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    } else if (format === 'gif') {
+                        dataUrl = canvas.toDataURL('image/gif');
+                        // Fallback to PNG if browser does not support GIF canvas encoding
+                        if (!dataUrl || dataUrl.startsWith('data:image/png')) {
+                            dataUrl = canvas.toDataURL('image/png').replace('image/png', 'image/gif');
+                        }
+                    } else if (format === 'bmp') {
+                        dataUrl = canvasToBMP(canvas);
+                    }
+
+                    if (dataUrl) {
+                        // Trigger download in local browser
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = dataUrl;
+                        downloadLink.download = imageFileName;
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        
+                        // Revoke object URL if BMP to release memory
+                        if (format === 'bmp' && dataUrl.startsWith('blob:')) {
+                            URL.revokeObjectURL(dataUrl);
+                        }
+                    } else {
+                        alert('이미지 파일 변환에 실패했습니다.');
+                    }
+
+                    btnDownload.disabled = false;
+                    btnDownload.innerHTML = origContent;
+                }).catch(error => {
+                    if (document.body.contains(clone)) {
+                        document.body.removeChild(clone);
+                    }
+                    console.error(error);
+                    alert('이미지 생성 중 오류가 발생했습니다: ' + error.message);
+                    btnDownload.disabled = false;
+                    btnDownload.innerHTML = origContent;
+                });
+            }, 50);
         }
     });
 

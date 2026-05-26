@@ -23,11 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // PDF Download Settings Elements
     const pdfOptionsContainer = document.getElementById('pdf-options-container');
+    const selectFormat = document.getElementById('select-format');
+    const optPasswordContainer = document.getElementById('opt-password-container');
     const chkPassword = document.getElementById('chk-password');
     const pdfPasswordInput = document.getElementById('pdf-password');
     const chkWatermark = document.getElementById('chk-watermark');
     const pdfWatermarkNameInput = document.getElementById('pdf-watermark-name');
     const chkLowSize = document.getElementById('chk-lowsize');
+    const chkLowSizeText = document.getElementById('chk-lowsize-text');
+    const chkLowSizeHelp = document.getElementById('chk-lowsize-help');
 
     // State Variables
     let selectedFile = null;
@@ -137,6 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Clear settings
         pdfOptionsContainer.style.display = 'none';
+        selectFormat.value = 'pdf';
+        btnDownload.innerHTML = '<i class="fa-solid fa-download" aria-hidden="true"></i> PDF 다운로드';
+        optPasswordContainer.style.display = 'block';
+        chkLowSizeText.innerHTML = '<i class="fa-solid fa-compress" aria-hidden="true"></i> 저용량 최적화';
+        chkLowSizeHelp.textContent = '인쇄 화질을 압축하여 PDF 파일 용량을 최소화합니다.';
         chkPassword.checked = false;
         pdfPasswordInput.style.display = 'none';
         pdfPasswordInput.value = '';
@@ -662,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 4. PDF GENERATOR & EXPORTER
+    // 4. MULTI-FORMAT GENERATOR & EXPORTER (PDF, PNG, JPG, GIF, BMP)
     // -------------------------------------------------------------
     btnDownload.addEventListener('click', () => {
         if (!selectedFile || !parsedHtmlOutput.innerHTML) {
@@ -670,12 +679,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Add visual loading indicator on button
-        btnDownload.disabled = true;
-        const origContent = btnDownload.innerHTML;
-        btnDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> PDF 생성 중...';
-
-        const pdfFileName = selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf";
+        const format = selectFormat.value;
+        const baseFileName = selectedFile.name.replace(/\.[^/.]+$/, "");
 
         // Read settings options
         const passwordProtected = chkPassword.checked && pdfPasswordInput.value.trim().length > 0;
@@ -685,52 +690,176 @@ document.addEventListener('DOMContentLoaded', () => {
         const scale = lowSizeChecked ? 1.2 : 2;
         const quality = lowSizeChecked ? 0.65 : 0.98;
 
-        // Setup PDF rendering parameters
-        const opt = {
-            margin: 0,
-            filename: pdfFileName,
-            image: { type: 'jpeg', quality: quality },
-            html2canvas: { 
-                scale: scale, 
-                useCORS: true, 
-                letterRendering: true,
-                backgroundColor: '#ffffff'
-            },
-            jsPDF: { 
-                unit: 'mm', 
-                format: 'a4', 
-                orientation: 'portrait',
-                compress: true,
-                encryption: passwordProtected ? {
-                    userPassword: pdfPassword,
-                    ownerPassword: pdfPassword,
-                    userPermissions: ["print", "copy"]
-                } : null
-            },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        };
+        // Visual loading indicator on button
+        btnDownload.disabled = true;
+        const origContent = btnDownload.innerHTML;
 
-        // Export parsed HTML container directly to local user PDF
-        html2pdf()
-            .set(opt)
-            .from(parsedHtmlOutput)
-            .save()
-            .then(() => {
-                // Reset visual indicator
+        if (format === 'pdf') {
+            btnDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> PDF 생성 중...';
+            const pdfFileName = baseFileName + ".pdf";
+
+            // Setup PDF rendering parameters
+            const opt = {
+                margin: 0,
+                filename: pdfFileName,
+                image: { type: 'jpeg', quality: quality },
+                html2canvas: { 
+                    scale: scale, 
+                    useCORS: true, 
+                    letterRendering: true,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    encryption: passwordProtected ? {
+                        userPassword: pdfPassword,
+                        ownerPassword: pdfPassword,
+                        userPermissions: ["print", "copy"]
+                    } : null
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Export parsed HTML container directly to local user PDF
+            html2pdf()
+                .set(opt)
+                .from(parsedHtmlOutput)
+                .save()
+                .then(() => {
+                    btnDownload.disabled = false;
+                    btnDownload.innerHTML = origContent;
+                })
+                .catch((error) => {
+                    console.error(error);
+                    alert('PDF 파일 생성 중 오류가 발생했습니다: ' + error.message);
+                    btnDownload.disabled = false;
+                    btnDownload.innerHTML = origContent;
+                });
+        } else {
+            // IMAGE FORMAT EXPORTS (PNG, JPG, GIF, BMP)
+            btnDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 이미지 변환 중...';
+            const imageFileName = baseFileName + "." + format;
+
+            // Render right A4 Preview sheet to canvas using html2canvas
+            html2canvas(parsedHtmlOutput, {
+                scale: scale,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                let dataUrl = null;
+
+                if (format === 'png') {
+                    dataUrl = canvas.toDataURL('image/png');
+                } else if (format === 'jpg') {
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                } else if (format === 'gif') {
+                    dataUrl = canvas.toDataURL('image/gif');
+                    // Fallback to PNG if browser does not support GIF canvas encoding
+                    if (!dataUrl || dataUrl.startsWith('data:image/png')) {
+                        dataUrl = canvas.toDataURL('image/png').replace('image/png', 'image/gif');
+                    }
+                } else if (format === 'bmp') {
+                    dataUrl = canvasToBMP(canvas);
+                }
+
+                if (dataUrl) {
+                    // Trigger download in local browser
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = dataUrl;
+                    downloadLink.download = imageFileName;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    // Revoke object URL if BMP to release memory
+                    if (format === 'bmp' && dataUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(dataUrl);
+                    }
+                } else {
+                    alert('이미지 파일 변환에 실패했습니다.');
+                }
+
                 btnDownload.disabled = false;
                 btnDownload.innerHTML = origContent;
-            })
-            .catch((error) => {
+            }).catch(error => {
                 console.error(error);
-                alert('PDF 파일 생성 중 오류가 발생했습니다: ' + error.message);
+                alert('이미지 생성 중 오류가 발생했습니다: ' + error.message);
                 btnDownload.disabled = false;
                 btnDownload.innerHTML = origContent;
             });
+        }
     });
+
+    // Custom Lightweight 32-bit BMP Pixel Stream Encoder
+    function canvasToBMP(canvas) {
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const width = imgData.width;
+        const height = imgData.height;
+        
+        const buffer = new ArrayBuffer(54 + width * height * 4);
+        const view = new DataView(buffer);
+        
+        // BMP File Header (14 bytes)
+        view.setUint16(0, 0x4D42, true); // "BM" signature
+        view.setUint32(2, 54 + width * height * 4, true); // File size
+        view.setUint16(6, 0, true); // Reserved
+        view.setUint16(8, 0, true); // Reserved
+        view.setUint32(10, 54, true); // Pixel data offset
+        
+        // DIB Header (40 bytes - BITMAPINFOHEADER)
+        view.setUint32(14, 40, true); // Header size
+        view.setInt32(18, width, true); // Width
+        view.setInt32(22, -height, true); // Height (Negative for top-down coordinate direction)
+        view.setUint16(26, 1, true); // Planes
+        view.setUint16(28, 32, true); // Bits per pixel (32-bit RGBA)
+        view.setUint32(30, 0, true); // Compression (0 = uncompressed BI_RGB)
+        view.setUint32(34, width * height * 4, true); // Image size
+        view.setInt32(38, 2835, true); // Horz resolution (72 DPI)
+        view.setInt32(42, 2835, true); // Vert resolution (72 DPI)
+        view.setUint32(46, 0, true); // Color palette colors
+        view.setUint32(50, 0, true); // Important colors
+        
+        // Pixel color array (BGRA stream)
+        const data = imgData.data;
+        let offset = 54;
+        for (let i = 0; i < data.length; i += 4) {
+            view.setUint8(offset, data[i + 2]);     // Blue channel
+            view.setUint8(offset + 1, data[i + 1]); // Green channel
+            view.setUint8(offset + 2, data[i]);     // Red channel
+            view.setUint8(offset + 3, data[i + 3]); // Alpha channel
+            offset += 4;
+        }
+        
+        const blob = new Blob([buffer], { type: 'image/bmp' });
+        return URL.createObjectURL(blob);
+    }
 
     // -------------------------------------------------------------
     // 5. PDF SETTINGS & WATERMARK EVENTS
     // -------------------------------------------------------------
+    selectFormat.addEventListener('change', () => {
+        const format = selectFormat.value;
+        const upperFormat = format.toUpperCase();
+        
+        // Update download button text dynamically
+        btnDownload.innerHTML = `<i class="fa-solid fa-download" aria-hidden="true"></i> ${upperFormat} 다운로드`;
+        
+        if (format === 'pdf') {
+            optPasswordContainer.style.display = 'block';
+            chkLowSizeText.innerHTML = '<i class="fa-solid fa-compress" aria-hidden="true"></i> 저용량 최적화';
+            chkLowSizeHelp.textContent = '인쇄 화질을 압축하여 PDF 파일 용량을 최소화합니다.';
+        } else {
+            optPasswordContainer.style.display = 'none';
+            chkLowSizeText.innerHTML = '<i class="fa-solid fa-compress" aria-hidden="true"></i> 이미지 용량 최적화';
+            chkLowSizeHelp.textContent = '이미지 해상도 배율을 낮춰 이미지 파일의 크기를 줄입니다.';
+        }
+    });
+
     chkPassword.addEventListener('change', () => {
         if (chkPassword.checked) {
             pdfPasswordInput.style.display = 'block';

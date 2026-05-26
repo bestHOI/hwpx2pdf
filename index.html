@@ -73,10 +73,24 @@
 
             <!-- PDF Settings Panel -->
             <div class="pdf-options-container" id="pdf-options-container" style="display: none;">
-                <h3 class="options-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> PDF 다운로드 설정</h3>
+                <div class="format-selector-row">
+                    <label class="format-label" for="select-format">
+                        <i class="fa-solid fa-file-export" aria-hidden="true"></i> 변환 형식 선택:
+                    </label>
+                    <select id="select-format" class="format-select">
+                        <option value="pdf">PDF 문서 (.pdf)</option>
+                        <option value="jpg">JPG 이미지 (.jpg)</option>
+                        <option value="gif">GIF 이미지 (.gif)</option>
+                        <option value="png">PNG 이미지 (.png)</option>
+                        <option value="bmp">BMP 이미지 (.bmp)</option>
+                    </select>
+                </div>
+                
+                <h3 class="options-title" id="options-panel-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> 상세 변환 옵션</h3>
+                
                 <div class="options-grid">
                     <!-- Option 1: Password -->
-                    <div class="option-item">
+                    <div class="option-item" id="opt-password-container">
                         <label class="option-label" for="chk-password">
                             <input type="checkbox" id="chk-password">
                             <span class="custom-checkbox"></span>
@@ -100,9 +114,9 @@
                         <label class="option-label" for="chk-lowsize">
                             <input type="checkbox" id="chk-lowsize">
                             <span class="custom-checkbox"></span>
-                            <span class="option-text"><i class="fa-solid fa-compress" aria-hidden="true"></i> 저용량 최적화</span>
+                            <span class="option-text" id="chk-lowsize-text"><i class="fa-solid fa-compress" aria-hidden="true"></i> 저용량 최적화</span>
                         </label>
-                        <span class="option-help-text">인쇄 화질을 압축하여 PDF 파일 용량을 최소화합니다.</span>
+                        <span class="option-help-text" id="chk-lowsize-help">인쇄 화질을 압축하여 PDF 파일 용량을 최소화합니다.</span>
                     </div>
                 </div>
             </div>

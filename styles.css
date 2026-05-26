@@ -510,6 +510,55 @@ footer a:hover {
     z-index: 1;
 }
 
+/* File Format Select Styles */
+.format-selector-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.format-label {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.2px;
+}
+
+.format-label i {
+    color: #c77dff;
+}
+
+.format-select {
+    font-family: 'Inter', sans-serif;
+    padding: 0.6rem 1.2rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-primary);
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.format-select:focus, .format-select:hover {
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.format-select option {
+    background: #161224;
+    color: var(--text-primary);
+    padding: 0.5rem;
+}
+
 .options-title {
     font-family: 'Outfit', sans-serif;
     font-size: 1.15rem;

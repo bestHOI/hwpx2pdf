@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewSection = document.getElementById('preview-section');
     const parsedHtmlOutput = document.getElementById('parsed-html-output');
     const hwpxHtmlOutput = document.getElementById('hwpx-html-output');
+    
+    // PDF Download Settings Elements
+    const pdfOptionsContainer = document.getElementById('pdf-options-container');
+    const chkPassword = document.getElementById('chk-password');
+    const pdfPasswordInput = document.getElementById('pdf-password');
+    const chkWatermark = document.getElementById('chk-watermark');
+    const pdfWatermarkNameInput = document.getElementById('pdf-watermark-name');
+    const chkLowSize = document.getElementById('chk-lowsize');
 
     // State Variables
     let selectedFile = null;
@@ -126,6 +134,17 @@ document.addEventListener('DOMContentLoaded', () => {
         previewSection.style.display = 'none';
         parsedHtmlOutput.innerHTML = '';
         hwpxHtmlOutput.innerHTML = '';
+        
+        // Clear settings
+        pdfOptionsContainer.style.display = 'none';
+        chkPassword.checked = false;
+        pdfPasswordInput.style.display = 'none';
+        pdfPasswordInput.value = '';
+        chkWatermark.checked = false;
+        pdfWatermarkNameInput.style.display = 'none';
+        pdfWatermarkNameInput.value = '';
+        chkLowSize.checked = false;
+        clearWatermarkPreview();
     }
 
     function updateProgress(percentage, stageText) {
@@ -138,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = msg;
         statusMessage.style.color = 'var(--success-color)';
         progressStage.textContent = '완료';
+        pdfOptionsContainer.style.display = 'block';
         actionPanel.style.display = 'flex';
     }
 
@@ -657,14 +677,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const pdfFileName = selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf";
 
+        // Read settings options
+        const passwordProtected = chkPassword.checked && pdfPasswordInput.value.trim().length > 0;
+        const pdfPassword = pdfPasswordInput.value.trim();
+        const lowSizeChecked = chkLowSize.checked;
+        
+        const scale = lowSizeChecked ? 1.2 : 2;
+        const quality = lowSizeChecked ? 0.65 : 0.98;
+
         // Setup PDF rendering parameters
-        // A4 page is exactly 210mm x 297mm. Using html2pdf, we set A4 layout
         const opt = {
             margin: 0,
             filename: pdfFileName,
-            image: { type: 'jpeg', quality: 0.98 },
+            image: { type: 'jpeg', quality: quality },
             html2canvas: { 
-                scale: 2, 
+                scale: scale, 
                 useCORS: true, 
                 letterRendering: true,
                 backgroundColor: '#ffffff'
@@ -672,7 +699,13 @@ document.addEventListener('DOMContentLoaded', () => {
             jsPDF: { 
                 unit: 'mm', 
                 format: 'a4', 
-                orientation: 'portrait' 
+                orientation: 'portrait',
+                compress: true,
+                encryption: passwordProtected ? {
+                    userPassword: pdfPassword,
+                    ownerPassword: pdfPassword,
+                    userPermissions: ["print", "copy"]
+                } : null
             },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
@@ -694,4 +727,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnDownload.innerHTML = origContent;
             });
     });
+
+    // -------------------------------------------------------------
+    // 5. PDF SETTINGS & WATERMARK EVENTS
+    // -------------------------------------------------------------
+    chkPassword.addEventListener('change', () => {
+        if (chkPassword.checked) {
+            pdfPasswordInput.style.display = 'block';
+            pdfPasswordInput.focus();
+        } else {
+            pdfPasswordInput.style.display = 'none';
+            pdfPasswordInput.value = '';
+        }
+    });
+
+    chkWatermark.addEventListener('change', () => {
+        if (chkWatermark.checked) {
+            pdfWatermarkNameInput.style.display = 'block';
+            pdfWatermarkNameInput.focus();
+            updateWatermarkPreview();
+        } else {
+            pdfWatermarkNameInput.style.display = 'none';
+            pdfWatermarkNameInput.value = '';
+            clearWatermarkPreview();
+        }
+    });
+
+    pdfWatermarkNameInput.addEventListener('input', () => {
+        updateWatermarkPreview();
+    });
+
+    function updateWatermarkPreview() {
+        const textVal = pdfWatermarkNameInput.value.trim();
+        if (!chkWatermark.checked || !textVal) {
+            clearWatermarkPreview();
+            return;
+        }
+        
+        const now = new Date();
+        const formatTime = now.getFullYear() + '-' + 
+                           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(now.getDate()).padStart(2, '0') + ' ' + 
+                           String(now.getHours()).padStart(2, '0') + ':' + 
+                           String(now.getMinutes()).padStart(2, '0') + ':' + 
+                           String(now.getSeconds()).padStart(2, '0');
+        const watermarkText = textVal + ' | ' + formatTime;
+        
+        // Draw canvas background watermark
+        const canvas = document.createElement('canvas');
+        canvas.width = 450;
+        canvas.height = 320;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.font = 'bold 14px "Inter", "Segoe UI", sans-serif';
+        ctx.fillStyle = 'rgba(157, 78, 221, 0.08)'; // Semi-transparent violet theme
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.translate(225, 160);
+        ctx.rotate(-28 * Math.PI / 180);
+        ctx.fillText(watermarkText, 0, 0);
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Apply background image watermark in real-time
+        parsedHtmlOutput.style.backgroundImage = `url(${dataUrl})`;
+        parsedHtmlOutput.style.backgroundRepeat = 'repeat';
+        hwpxHtmlOutput.style.backgroundImage = `url(${dataUrl})`;
+        hwpxHtmlOutput.style.backgroundRepeat = 'repeat';
+    }
+
+    function clearWatermarkPreview() {
+        parsedHtmlOutput.style.backgroundImage = 'none';
+        hwpxHtmlOutput.style.backgroundImage = 'none';
+    }
 });

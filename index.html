@@ -71,6 +71,42 @@
                 <p class="status-message" id="status-message"></p>
             </div>
 
+            <!-- PDF Settings Panel -->
+            <div class="pdf-options-container" id="pdf-options-container" style="display: none;">
+                <h3 class="options-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> PDF 다운로드 설정</h3>
+                <div class="options-grid">
+                    <!-- Option 1: Password -->
+                    <div class="option-item">
+                        <label class="option-label" for="chk-password">
+                            <input type="checkbox" id="chk-password">
+                            <span class="custom-checkbox"></span>
+                            <span class="option-text"><i class="fa-solid fa-lock" aria-hidden="true"></i> 비밀번호 설정</span>
+                        </label>
+                        <input type="password" id="pdf-password" placeholder="비밀번호 입력" class="pdf-settings-input" style="display: none;">
+                    </div>
+
+                    <!-- Option 2: Watermark -->
+                    <div class="option-item">
+                        <label class="option-label" for="chk-watermark">
+                            <input type="checkbox" id="chk-watermark">
+                            <span class="custom-checkbox"></span>
+                            <span class="option-text"><i class="fa-solid fa-stamp" aria-hidden="true"></i> 워터마크 삽입</span>
+                        </label>
+                        <input type="text" id="pdf-watermark-name" placeholder="사용자 이름 입력 (예: 홍길동)" class="pdf-settings-input" style="display: none;">
+                    </div>
+
+                    <!-- Option 3: Low size -->
+                    <div class="option-item">
+                        <label class="option-label" for="chk-lowsize">
+                            <input type="checkbox" id="chk-lowsize">
+                            <span class="custom-checkbox"></span>
+                            <span class="option-text"><i class="fa-solid fa-compress" aria-hidden="true"></i> 저용량 최적화</span>
+                        </label>
+                        <span class="option-help-text">인쇄 화질을 압축하여 PDF 파일 용량을 최소화합니다.</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Actions Panel -->
             <div class="action-panel" id="action-panel">
                 <button class="btn btn-secondary" id="btn-reset">

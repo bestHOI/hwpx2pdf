@@ -498,6 +498,126 @@ footer a:hover {
     color: var(--text-primary);
 }
 
+/* PDF Settings Options Container */
+.pdf-options-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    z-index: 1;
+}
+
+.options-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.2px;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.option-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    user-select: none;
+}
+
+/* Custom Checkbox */
+.option-label input[type="checkbox"] {
+    display: none;
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.custom-checkbox::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 0.75rem;
+    display: none;
+}
+
+.option-label input[type="checkbox"]:checked + .custom-checkbox {
+    border-color: var(--accent-hover);
+    background: linear-gradient(135deg, #7b2cbf 0%, #9d4edd 100%);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.option-label input[type="checkbox"]:checked + .custom-checkbox::after {
+    display: block;
+}
+
+.option-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.option-text i {
+    color: #e0aaff;
+    font-size: 0.9rem;
+}
+
+.pdf-settings-input {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    margin-top: 0.75rem;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.pdf-settings-input:focus {
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 10px var(--accent-glow);
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.option-help-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
 /* Scrollbar Customization */
 ::-webkit-scrollbar {
     width: 8px;
